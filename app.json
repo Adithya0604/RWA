@@ -11,6 +11,9 @@
     "ios": {
       "supportsTablet": true
     },
+    "extra": {
+          "expoPublicOpenWeatherKey": "42db0aa9b71e5b0d1155f950972bacef"
+    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
