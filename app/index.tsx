@@ -17,9 +17,20 @@ export default function Page() {
 
         <Link href="/weather" asChild>
           <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>✨ Abracadabra, Show Me Weather!</Text>
+            <Text style={styles.buttonText}>
+              ✨ Abracadabra, Show Me Weather!
+            </Text>
           </TouchableOpacity>
         </Link>
+
+        <Link href="/screen" asChild>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>
+              dummy screen
+            </Text>
+          </TouchableOpacity>
+        </Link>
+
       </View>
     </LinearGradient>
   );
