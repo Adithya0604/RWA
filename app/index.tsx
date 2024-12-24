@@ -15,18 +15,10 @@ export default function Page() {
           summon the ultimate weather spell! 🧙‍♂️
         </Text>
 
-        <Link href="/weather" asChild>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>
-              ✨ Abracadabra, Show Me Weather!
-            </Text>
-          </TouchableOpacity>
-        </Link>
-
         <Link href="/screen" asChild>
           <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>
-              dummy screen
+              🤒 Check It 😶‍🌫️
             </Text>
           </TouchableOpacity>
         </Link>

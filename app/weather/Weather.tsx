@@ -1,4 +1,6 @@
 import Constants from "expo-constants";
+import { useSearchParams } from "next/navigation";
+import { useLocalSearchParams } from "expo-router";
 import {
   StyleSheet,
   Text,
@@ -35,13 +37,11 @@ type MainWeather = {
   sea_level: number;
   grnd_level: number;
 };
-
 export type WeatherInfo = {
   main: MainWeather;
   dt: number;
   name: string;
 };
-
 type weather = {
   name: string;
   main: MainWeather;
@@ -51,59 +51,68 @@ type weather = {
 const Weather = () => {
   const [weather, setWeather] = useState<WeatherInfo>();
   const [forecast, setForecast] = useState<WeatherInfo[]>();
-  const [coordinates, setCoordinates] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [isLoading, setisLoading] = useState(true);
   const [location, setLocation] = useState<any>(null);
+  const [coordinates, setCoordinates] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
 
-  // This is the effect which is like taking the geolocation of the user and more.
+  const searchParams = useLocalSearchParams();
+
   useEffect(() => {
-    async function getCurrentLocation() {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
+    const lat = Array.isArray(searchParams.lat)
+      ? searchParams.lat[0]
+      : searchParams.lat;
+    const lng = Array.isArray(searchParams.lng)
+      ? searchParams.lng[0]
+      : searchParams.lng;
+
+    if (lat && lng) {
+      const newLat = parseFloat(lat);
+      const newLng = parseFloat(lng);
+      console.log("in here ", { lat, lng });
+      if (coordinates?.lat !== newLat || coordinates?.lon !== newLng) {
+        console.log("updating ", { lat, lng });
+        setCoordinates({ lat: newLat, lon: newLng });
       }
-
-      let location = await Location.getCurrentPositionAsync({});
-      console.log("Location:", location);
-      setLocation(location);
+    } else {
+      console.log("No URL parameters found");
     }
-
-    getCurrentLocation();
-  }, []);
+  }, [searchParams, coordinates]);
 
   useEffect(() => {
-    if (coordinates) {
-      fetchWeather();
-      fetchForcast();
-    }
+    const fetchData = async () => {
+      if (coordinates) {
+        await fetchWeather();
+        await fetchForcast();
+      }
+    };
+    fetchData();
   }, [coordinates]);
 
-  // FetchWeather function for current weather data.
   const fetchWeather = async () => {
     if (!coordinates) {
+      console.error("Coordinates are missing!");
       return;
     }
-    /*
-    -----------------------------------------------------------------------------------------------------------------------------------------------
-    || Change Here @2 :- The locaiton(lat, lng) from API @1 should be replaced here and then it will give the weather fo the location acc..ly.   ||
-    ----------------------------------------------------------------------------------------------------------------------------------------------- 
-*/
-    const WeatherAns = await fetch(
-      `${Base_URL}/weather?lat=${coordinates.lat}&lon=${coordinates.lng}&appid=${Open_Weather_Key}&units=metric`
-    );
 
-    console.log("WeatherAns",WeatherAns);
+    try {
+      const apiUrl = `${Base_URL}/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${Open_Weather_Key}&units=metric`;
+      const response = await fetch(apiUrl);
 
-    const WeatherData = await WeatherAns.json(); // This is written in the JSON mode. lke Proper Json mode.
+      if (!response.ok) {
+        throw new Error(`API request failed with status: ${response.status}`);
+      }
 
-    // console.log(JSON.stringify(WeatherData, null, 2)); // Json stringify is the method which converts the objects into the string. Where the parameters are val, replacer, Space_number.
-    setWeather(WeatherData);
-    setisLoading(false);
+      const weatherData = await response.json();
+      setWeather(weatherData);
+      setisLoading(false);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+      setErrorMsg("Failed to fetch weather data. Please try again later.");
+    }
   };
 
   // FetchForecast function for days of weather like 1 - 16 days or between.
@@ -111,27 +120,13 @@ const Weather = () => {
     if (!coordinates) {
       return;
     }
+
     const ForecastAns = await fetch(
-      `${Base_URL}/forecast?lat=${coordinates.lat}&lon=${coordinates.lng}&appid=${Open_Weather_Key}&units=metric`
+      `${Base_URL}/forecast?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${Open_Weather_Key}&units=metric`
     );
     const ForecastData = await ForecastAns.json(); // This is written in the JSON mode. lke Proper Json mode.
-
-    console.log(
-      "Forecast Data:- ",
-      JSON.stringify(ForecastData.list.slice(0, 5), null, 2)
-    ); // Json stringify is the method which converts the objects into the string. Where the parameters are val, replacer, Space_number.
     setForecast(ForecastData.list);
   };
-
-  const handleCoordinates = (coords: { lat: number; lng: number }) => {
-    setCoordinates(coords);
-  };
-
-  // You can call handleCoordinates with your lat/lng
-  // if (coordinates) {
-  //   const { lat, lng } = coordinates;
-  //   handleCoordinates({ lat, lng });
-  // }
 
   if (isLoading) {
     return (
@@ -153,7 +148,6 @@ const Weather = () => {
           backgroundColor: "rgba(0, 0, 0, 0.5)",
         }}
       />
-
       <Stack.Screen options={{ headerShown: false }} />
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         {weather && (
@@ -199,14 +193,14 @@ const styles = StyleSheet.create({
   },
   isLoadingContainer: {
     flex: 1,
-    backgroundColor: "linear-gradient(45deg, #1e3c72, #2a5298)", // Gradient background
+    backgroundColor: "linear-gradient(45deg, #1e3c72, #2a5298)",
     alignItems: "center",
     justifyContent: "center",
   },
   loaderWrapper: {
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 20,
     borderRadius: 15,
     shadowColor: "#000",
@@ -220,7 +214,7 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginBottom: 20,
-    transform: [{ rotate: "360deg" }], // Adds smooth rotation animation
+    transform: [{ rotate: "360deg" }],
   },
   loadingText: {
     fontSize: 18,

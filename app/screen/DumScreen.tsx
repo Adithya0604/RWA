@@ -8,6 +8,7 @@ const countries = [
   { label: "India", value: "india" },
   { label: "USA", value: "usa" },
 ];
+
 const statesData: { [key: string]: { label: string; value: string }[] } = {
   india: [
     { label: "Andhra Pradesh", value: "ap" },
@@ -23,13 +24,6 @@ const statesData: { [key: string]: { label: string; value: string }[] } = {
     { label: "New York", value: "new_york" },
   ],
 };
-// const data3 = [
-//   { label: "item31", value: "1" },
-//   { label: "item32", value: "2" },
-//   { label: "item33", value: "4" },
-//   { label: "item34", value: "3" },
-//   { label: "item35", value: "5" },
-// ];
 
 const DumScreen = () => {
   const router = useRouter();
@@ -48,28 +42,23 @@ const DumScreen = () => {
     setSelection({ ...Selection, state: item.value });
   };
 
-  /*
-  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  || Change here @1 :- link of the API to weather.tsx where i have to take the cordinates from the API @1 and give it to the weather API @2 such that it will be showing the weather acc..ly. ||
-  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-*/
-const fetchCoordinates = async (country: string, state: string) => {
-  const apiUrl = `https://maps.gomaps.pro/maps/api/geocode/json?address=${country}%20${state}&language=en&region=en&key=AlzaSyc702FzbhNY6FEixiVF6WpSXP0Ht_uZ6YC`;
-  try {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    if (data.results && data.results[0]) {
-      const { lat, lng } = data.results[0].geometry.location;
-      return { lat, lng };
-    } else {
-      console.error("No results found for these coordinates.");
+  const fetchCoordinates = async (country: string, state: string) => {
+    const apiUrl = `https://maps.gomaps.pro/maps/api/geocode/json?address=${country}%20${state}&language=en&region=en&key=AlzaSyc702FzbhNY6FEixiVF6WpSXP0Ht_uZ6YC`;
+    try {
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      if (data.results && data.results[0]) {
+        const { lat, lng } = data.results[0].geometry.location;
+        return { lat, lng };
+      } else {
+        console.error("No results found for these coordinates.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching coordinates:", error);
       return null;
     }
-  } catch (error) {
-    console.error("Error fetching coordinates:", error);
-    return null;
-  }
-};
+  };
 
   const handleSubmit = async () => {
     if (!Selection.country || !Selection.state) {
@@ -77,7 +66,6 @@ const fetchCoordinates = async (country: string, state: string) => {
       return;
     }
 
-    // Fetch coordinates based on selected country and state
     const coordinates = await fetchCoordinates(
       Selection.country,
       Selection.state
@@ -85,7 +73,6 @@ const fetchCoordinates = async (country: string, state: string) => {
 
     if (coordinates) {
       const { lat, lng } = coordinates;
-      // Pass these coordinates to the weather API
       router.push(`/weather?lat=${lat}&lng=${lng}`);
     } else {
       alert("Unable to fetch coordinates. Please try again.");
@@ -149,35 +136,6 @@ const fetchCoordinates = async (country: string, state: string) => {
           />
         )}
       />
-
-      {/* 3 */}
-      {/* <Text style = {styles.text}> Select the City </Text> */}
-      {/* <Dropdown
-        style={styles.dropdown}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
-        inputSearchStyle={styles.inputSearchStyle}
-        iconStyle={styles.iconStyle}
-        data={data3}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        placeholder="Select item"
-        searchPlaceholder="Search..."
-        value={value3}
-        onChange={(item) => {
-          setValue3(item.value);
-        }}
-        renderLeftIcon={() => (
-          <AntDesign
-            style={styles.icon}
-            color="black"
-            name="Safety"
-            size={20}
-          />
-        )}
-      /> */}
       <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
         <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
@@ -188,20 +146,20 @@ const fetchCoordinates = async (country: string, state: string) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20, // Added padding for top-left alignment
-    alignItems: "flex-start", // Align items to the left
+    padding: 20,
+    alignItems: "flex-start",
     backgroundColor: "#e0f7fa",
   },
   text: {
-    fontSize: 18, // Adjusted font size
+    fontSize: 18,
     fontWeight: "bold",
     color: "#00796b",
-    marginBottom: 8, //
+    marginBottom: 8,
   },
   dropdown: {
-    marginBottom: 16, // Space between dropdowns
+    marginBottom: 16,
     height: 50,
-    width: "100%", // Adjusted width for better alignment
+    width: "100%",
     borderBottomColor: "gray",
     borderBottomWidth: 0.5,
   },
@@ -227,7 +185,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     backgroundColor: "#007BFF",
     alignItems: "center",
-    borderRadius: 5, // Optional for rounded corners
+    borderRadius: 5,
   },
   submitButtonText: {
     color: "white",
@@ -235,10 +193,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
-// drop down
-// ABCD text
-// submit button
-// weather App open
 
 export default DumScreen;
